@@ -210,8 +210,38 @@ endgenerate
    assign adder_result_o = adder_result;
 
    generate
+	/* verilator lint_off WIDTH */
+	if (FEATURE_MULTIPLIER=="LATTICE_DSP") begin : lattice_dsp
+	/* verilator lint_on WIDTH */
+		wire [63:0] dsp_result;
+		reg [2:0] mul_valid_shr;
+	
+		mult32 alu_mult (
+			.Clock(clk),
+			.ClkEn(1'b1),
+			.Aclr(rst),
+			.DataA(a),
+			.DataB(b), 
+			.Result(dsp_result));
+		
+		assign mul_result = dsp_result[OPTION_OPERAND_WIDTH-1:0];
+		assign mul_unsigned_overflow = (|dsp_result[63:OPTION_OPERAND_WIDTH])? 1'b1 : 1'b0;
+		/*
+		assign mul_signed_overflow = (dsp_result[63] == 1'b0)?
+		                                   ( (|dsp_result[62:OPTION_OPERAND_WIDTH])? 1'b1 : 1'b0 ) :
+		                                   ( (&dsp_result[62:OPTION_OPERAND_WIDTH])? 1'b0 : 1'b1 ) ;
+		*/
+		always @(posedge clk)
+			if (decode_valid_i)
+				mul_valid_shr <= {2'b00, op_mul_i};
+			else
+				mul_valid_shr <= mul_valid_shr[2] ? mul_valid_shr : {mul_valid_shr[1:0], 1'b0};
+		
+		assign mul_valid = mul_valid_shr[2] & !decode_valid_i;
+		
+	end // if (FEATURE_MULTIPLIER=="LATTICE_DSP")
       /* verilator lint_off WIDTH */
-      if (FEATURE_MULTIPLIER=="THREESTAGE") begin : threestagemultiply
+      else if (FEATURE_MULTIPLIER=="THREESTAGE") begin : threestagemultiply
 	 /* verilator lint_on WIDTH */
          // 32-bit multiplier with three registering stages to help with timing
          reg [OPTION_OPERAND_WIDTH-1:0]           mul_opa;
