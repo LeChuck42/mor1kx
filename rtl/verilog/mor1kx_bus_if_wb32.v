@@ -34,6 +34,7 @@ module mor1kx_bus_if_wb32
     input [3:0]   cpu_bsel_i,
     input         cpu_we_i,
     input         cpu_burst_i,
+    input         cpu_type_i,
 
     output [31:0] wbm_adr_o,
     output        wbm_stb_o,
@@ -43,6 +44,7 @@ module mor1kx_bus_if_wb32
     output [2:0]  wbm_cti_o,
     output [1:0]  wbm_bte_o,
     output [31:0] wbm_dat_o,
+    output        wbm_tagn_o,
     input         wbm_err_i,
     input         wbm_ack_i,
     input [31:0]  wbm_dat_i,
@@ -152,6 +154,7 @@ module mor1kx_bus_if_wb32
 	 assign cpu_err_o = wbm_err_i;
 	 assign cpu_ack_o = wbm_ack_i;
 	 assign cpu_dat_o = wbm_dat_i;
+	 assign wbm_tagn_o = cpu_type_i;
 
       end else begin : classic // CLASSIC only
 

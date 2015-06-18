@@ -12,7 +12,7 @@
              Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 
 ***************************************************************************** */
-
+`default_nettype wire
 `include "mor1kx-defines.v"
 
 module mor1kx
@@ -125,6 +125,7 @@ module mor1kx
     output [2:0] 		      dwbm_cti_o,
     output [1:0] 		      dwbm_bte_o,
     output [31:0] 		      dwbm_dat_o,
+    output  			      dwbm_tagn_o,
     input 			      dwbm_err_i,
     input 			      dwbm_ack_i,
     input [31:0] 		      dwbm_dat_i,
@@ -185,6 +186,7 @@ module mor1kx
    wire [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o;	// From mor1kx_cpu of mor1kx_cpu.v
    wire [3:0]		dbus_bsel_o;		// From mor1kx_cpu of mor1kx_cpu.v
    wire			dbus_burst_o;		// From mor1kx_cpu of mor1kx_cpu.v
+   wire         dbus_type_o;
    wire [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o;	// From mor1kx_cpu of mor1kx_cpu.v
    wire			dbus_req_o;		// From mor1kx_cpu of mor1kx_cpu.v
    wire			dbus_we_o;		// From mor1kx_cpu of mor1kx_cpu.v
@@ -313,6 +315,7 @@ module mor1kx
 	    .wbm_cti_o			(dwbm_cti_o),		 // Templated
 	    .wbm_bte_o			(dwbm_bte_o),		 // Templated
 	    .wbm_dat_o			(dwbm_dat_o),		 // Templated
+		.wbm_tagn_o         (dwbm_tagn_o),
 	    // Inputs
 	    .clk			(clk),
 	    .rst			(rst),
@@ -322,6 +325,7 @@ module mor1kx
 	    .cpu_bsel_i			(dbus_bsel_o),		 // Templated
 	    .cpu_we_i			(dbus_we_o),		 // Templated
 	    .cpu_burst_i		(dbus_burst_o),		 // Templated
+		.cpu_type_i         (dbus_type_o),
 	    .wbm_err_i			(dwbm_err_i),		 // Templated
 	    .wbm_ack_i			(dwbm_ack_i),		 // Templated
 	    .wbm_dat_i			(dwbm_dat_i),		 // Templated
@@ -525,6 +529,7 @@ module mor1kx
       .dbus_bsel_o			(dbus_bsel_o[3:0]),
       .dbus_we_o			(dbus_we_o),
       .dbus_burst_o			(dbus_burst_o),
+	  .dbus_type_o          (dbus_type_o),
       .du_dat_o				(du_dat_o[OPTION_OPERAND_WIDTH-1:0]),
       .du_ack_o				(du_ack_o),
       .du_stall_o			(du_stall_o),

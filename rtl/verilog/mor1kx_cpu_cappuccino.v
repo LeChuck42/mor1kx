@@ -118,6 +118,7 @@ module mor1kx_cpu_cappuccino
     output [3:0] 		      dbus_bsel_o,
     output 			      dbus_we_o,
     output 			      dbus_burst_o,
+    output 			      dbus_type_o,
 
     // Interrupts
     input [31:0] 		      irq_i,
@@ -207,6 +208,7 @@ module mor1kx_cpu_cappuccino
    wire			ctrl_op_lsu_atomic_o;	// From mor1kx_execute_ctrl_cappuccino of mor1kx_execute_ctrl_cappuccino.v
    wire			ctrl_op_lsu_load_o;	// From mor1kx_execute_ctrl_cappuccino of mor1kx_execute_ctrl_cappuccino.v
    wire			ctrl_op_lsu_store_o;	// From mor1kx_execute_ctrl_cappuccino of mor1kx_execute_ctrl_cappuccino.v
+   wire			ctrl_op_lsu_inc_o;
    wire			ctrl_op_mfspr_o;	// From mor1kx_execute_ctrl_cappuccino of mor1kx_execute_ctrl_cappuccino.v
    wire			ctrl_op_mtspr_o;	// From mor1kx_execute_ctrl_cappuccino of mor1kx_execute_ctrl_cappuccino.v
    wire			ctrl_op_mul_o;		// From mor1kx_execute_ctrl_cappuccino of mor1kx_execute_ctrl_cappuccino.v
@@ -250,6 +252,7 @@ module mor1kx_cpu_cappuccino
    wire			decode_op_lsu_atomic_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_lsu_load_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_lsu_store_o;	// From mor1kx_decode of mor1kx_decode.v
+   wire			decode_op_lsu_inc_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_mfspr_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_movhi_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_mtspr_o;	// From mor1kx_decode of mor1kx_decode.v
@@ -304,6 +307,7 @@ module mor1kx_cpu_cappuccino
    wire			execute_op_lsu_atomic_o;// From mor1kx_decode_execute_cappuccino of mor1kx_decode_execute_cappuccino.v
    wire			execute_op_lsu_load_o;	// From mor1kx_decode_execute_cappuccino of mor1kx_decode_execute_cappuccino.v
    wire			execute_op_lsu_store_o;	// From mor1kx_decode_execute_cappuccino of mor1kx_decode_execute_cappuccino.v
+   wire         execute_op_lsu_inc_o;
    wire			execute_op_mfspr_o;	// From mor1kx_decode_execute_cappuccino of mor1kx_decode_execute_cappuccino.v
    wire			execute_op_movhi_o;	// From mor1kx_decode_execute_cappuccino of mor1kx_decode_execute_cappuccino.v
    wire			execute_op_mtspr_o;	// From mor1kx_decode_execute_cappuccino of mor1kx_decode_execute_cappuccino.v
@@ -507,6 +511,7 @@ module mor1kx_cpu_cappuccino
       .decode_op_alu_o			(decode_op_alu_o),
       .decode_op_lsu_load_o		(decode_op_lsu_load_o),
       .decode_op_lsu_store_o		(decode_op_lsu_store_o),
+      .decode_op_lsu_inc_o		(decode_op_lsu_inc_o),
       .decode_op_lsu_atomic_o		(decode_op_lsu_atomic_o),
       .decode_lsu_length_o		(decode_lsu_length_o[1:0]),
       .decode_lsu_zext_o		(decode_lsu_zext_o),
@@ -628,6 +633,7 @@ module mor1kx_cpu_cappuccino
       .execute_op_branch_o		(execute_op_branch_o),
       .execute_op_lsu_load_o		(execute_op_lsu_load_o),
       .execute_op_lsu_store_o		(execute_op_lsu_store_o),
+      .execute_op_lsu_inc_o		(execute_op_lsu_inc_o),
       .execute_op_lsu_atomic_o		(execute_op_lsu_atomic_o),
       .execute_lsu_length_o		(execute_lsu_length_o[1:0]),
       .execute_lsu_zext_o		(execute_lsu_zext_o),
@@ -695,6 +701,7 @@ module mor1kx_cpu_cappuccino
       .decode_op_branch_i		(decode_op_branch_o),	 // Templated
       .decode_op_lsu_load_i		(decode_op_lsu_load_o),	 // Templated
       .decode_op_lsu_store_i		(decode_op_lsu_store_o), // Templated
+      .decode_op_lsu_inc_i		(decode_op_lsu_inc_o),
       .decode_op_lsu_atomic_i		(decode_op_lsu_atomic_o), // Templated
       .decode_lsu_length_i		(decode_lsu_length_o[1:0]), // Templated
       .decode_lsu_zext_i		(decode_lsu_zext_o),	 // Templated
@@ -935,6 +942,7 @@ module mor1kx_cpu_cappuccino
       .dbus_bsel_o			(dbus_bsel_o[3:0]),
       .dbus_we_o			(dbus_we_o),
       .dbus_burst_o			(dbus_burst_o),
+	  .dbus_type_o          (dbus_type_o),
       // Inputs
       .clk				(clk),
       .rst				(rst),
@@ -950,6 +958,7 @@ module mor1kx_cpu_cappuccino
       .ctrl_op_lsu_load_i		(ctrl_op_lsu_load_o),	 // Templated
       .ctrl_op_lsu_store_i		(ctrl_op_lsu_store_o),	 // Templated
       .ctrl_op_lsu_atomic_i		(ctrl_op_lsu_atomic_o),	 // Templated
+	  .ctrl_op_lsu_inc_i		(ctrl_op_lsu_inc_o),
       .ctrl_lsu_length_i		(ctrl_lsu_length_o),	 // Templated
       .ctrl_lsu_zext_i			(ctrl_lsu_zext_o),	 // Templated
       .ctrl_epcr_i			(ctrl_epcr_o),		 // Templated
@@ -1175,6 +1184,7 @@ module mor1kx_cpu_cappuccino
       .ctrl_op_mul_o			(ctrl_op_mul_o),
       .ctrl_op_lsu_load_o		(ctrl_op_lsu_load_o),
       .ctrl_op_lsu_store_o		(ctrl_op_lsu_store_o),
+	  .ctrl_op_lsu_inc_o        (ctrl_op_lsu_inc_o),
       .ctrl_op_lsu_atomic_o		(ctrl_op_lsu_atomic_o),
       .ctrl_lsu_length_o		(ctrl_lsu_length_o[1:0]),
       .ctrl_lsu_zext_o			(ctrl_lsu_zext_o),
@@ -1215,6 +1225,7 @@ module mor1kx_cpu_cappuccino
       .op_lsu_load_i			(execute_op_lsu_load_o), // Templated
       .op_lsu_store_i			(execute_op_lsu_store_o), // Templated
       .op_lsu_atomic_i			(execute_op_lsu_atomic_o), // Templated
+	  .op_lsu_inc_i         (execute_op_lsu_inc_o),
       .lsu_length_i			(execute_lsu_length_o),	 // Templated
       .lsu_zext_i			(execute_lsu_zext_o),	 // Templated
       .op_mfspr_i			(execute_op_mfspr_o),	 // Templated

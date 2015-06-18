@@ -110,6 +110,7 @@ module mor1kx_decode_execute_cappuccino
 
     input 				  decode_op_lsu_load_i,
     input 				  decode_op_lsu_store_i,
+    input 				  decode_op_lsu_inc_i,
     input 				  decode_op_lsu_atomic_i,
     input [1:0] 			  decode_lsu_length_i,
     input 				  decode_lsu_zext_i,
@@ -146,6 +147,7 @@ module mor1kx_decode_execute_cappuccino
 
     output reg 				  execute_op_lsu_load_o,
     output reg 				  execute_op_lsu_store_o,
+    output reg 				  execute_op_lsu_inc_o,
     output reg 				  execute_op_lsu_atomic_o,
     output reg [1:0] 			  execute_lsu_length_o,
     output reg 				  execute_lsu_zext_o,
@@ -227,6 +229,7 @@ module mor1kx_decode_execute_cappuccino
 	execute_op_mtspr_o <= 1'b0;
 	execute_op_lsu_load_o <= 1'b0;
 	execute_op_lsu_store_o <= 1'b0;
+	execute_op_lsu_inc_o <= 1'b0;
 	execute_op_lsu_atomic_o <= 1'b0;
 	execute_op_setflag_o <= 1'b0;
 	execute_op_jbr_o <= 1'b0;
@@ -248,6 +251,7 @@ module mor1kx_decode_execute_cappuccino
 	execute_op_movhi_o <= 1'b0;
 	execute_op_lsu_load_o <= 1'b0;
 	execute_op_lsu_store_o <= 1'b0;
+	execute_op_lsu_inc_o <= 1'b0;
 	execute_op_lsu_atomic_o <= 1'b0;
 	execute_op_setflag_o <= 1'b0;
 	execute_op_jbr_o <= 1'b0;
@@ -271,6 +275,7 @@ module mor1kx_decode_execute_cappuccino
 	execute_op_mtspr_o <= decode_op_mtspr_i;
 	execute_op_lsu_load_o <= decode_op_lsu_load_i;
 	execute_op_lsu_store_o <= decode_op_lsu_store_i;
+	execute_op_lsu_inc_o <= decode_op_lsu_inc_i;
 	execute_op_lsu_atomic_o <= decode_op_lsu_atomic_i;
 	execute_op_setflag_o <= decode_op_setflag_i;
 	execute_op_jbr_o <= decode_op_jbr_i;
@@ -294,6 +299,7 @@ module mor1kx_decode_execute_cappuccino
 	   execute_op_mfspr_o <= 1'b0;
 	   execute_op_lsu_load_o <= 1'b0;
 	   execute_op_lsu_store_o <= 1'b0;
+	   execute_op_lsu_inc_o <= 1'b0;
 	   execute_op_lsu_atomic_o <= 1'b0;
 	   execute_op_setflag_o <= 1'b0;
 	   execute_op_jbr_o <= 1'b0;

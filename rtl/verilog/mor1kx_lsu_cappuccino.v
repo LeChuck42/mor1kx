@@ -33,7 +33,8 @@ module mor1kx_lsu_cappuccino
     parameter OPTION_DMMU_WAYS = 1,
     parameter FEATURE_STORE_BUFFER = "ENABLED",
     parameter OPTION_STORE_BUFFER_DEPTH_WIDTH = 8,
-    parameter FEATURE_ATOMIC = "ENABLED"
+    parameter FEATURE_ATOMIC = "ENABLED",
+    parameter FEATURE_CUST1 = "NONE"
     )
    (
     input 			      clk,
@@ -56,6 +57,7 @@ module mor1kx_lsu_cappuccino
     input 			      ctrl_op_lsu_load_i,
     input 			      ctrl_op_lsu_store_i,
     input 			      ctrl_op_lsu_atomic_i,
+	input 			      ctrl_op_lsu_inc_i,
     input [1:0] 		      ctrl_lsu_length_i,
     input 			      ctrl_lsu_zext_i,
 
@@ -100,6 +102,7 @@ module mor1kx_lsu_cappuccino
     output reg [3:0] 		      dbus_bsel_o,
     output 			      dbus_we_o,
     output 			      dbus_burst_o,
+    output 			      dbus_type_o,
     input 			      dbus_err_i,
     input 			      dbus_ack_i,
     input [OPTION_OPERAND_WIDTH-1:0]  dbus_dat_i,
@@ -130,6 +133,7 @@ module mor1kx_lsu_cappuccino
    wire [OPTION_OPERAND_WIDTH-1:0]   next_dbus_adr;
    reg 				     dbus_we;
    reg [3:0] 			     dbus_bsel;
+   reg                   dbus_type;
    wire 			     dbus_access;
    wire 			     dbus_stall;
 
@@ -186,6 +190,7 @@ module mor1kx_lsu_cappuccino
    wire [OPTION_OPERAND_WIDTH-1:0]   store_buffer_wadr;
    wire [OPTION_OPERAND_WIDTH-1:0]   store_buffer_dat;
    wire [OPTION_OPERAND_WIDTH/8-1:0] store_buffer_bsel;
+   wire                  store_buffer_type;
    wire 			     store_buffer_atomic;
    reg 				     store_buffer_write_pending;
 
@@ -372,6 +377,7 @@ module mor1kx_lsu_cappuccino
    assign dbus_dat_o = dbus_dat;
 
    assign dbus_burst_o = (state == DC_REFILL) & !dc_refill_done;
+   assign dbus_type_o = dbus_type;
 
    //
    // Slightly subtle, but if there is an atomic store coming out from the
@@ -402,6 +408,7 @@ module mor1kx_lsu_cappuccino
 	   dbus_adr <= 0;
 	   dbus_bsel_o <= 4'hf;
 	   dbus_atomic <= 0;
+	   dbus_type <= 0;
 	   last_write <= 0;
 	   if (store_buffer_write | !store_buffer_empty) begin
 	      state <= WRITE;
@@ -471,6 +478,7 @@ module mor1kx_lsu_cappuccino
 	      dbus_adr <= store_buffer_radr;
 	      dbus_dat <= store_buffer_dat;
 	      dbus_atomic <= store_buffer_atomic;
+		  dbus_type <= store_buffer_type;
 	      last_write <= store_buffer_empty;
 	   end
 
@@ -480,6 +488,7 @@ module mor1kx_lsu_cappuccino
 	   if (last_write & dbus_ack_i | dbus_err_i) begin
 	      dbus_req_o <= 0;
 	      dbus_we <= 0;
+		  dbus_type <= 0;
 	      if (!store_buffer_write) begin
 		 state <= IDLE;
 		 write_done <= 1;
@@ -607,6 +616,7 @@ if (FEATURE_STORE_BUFFER!="NONE") begin : store_buffer_gen
       .adr_i	(store_buffer_wadr),
       .dat_i	(lsu_sdat),
       .bsel_i	(dbus_bsel),
+      .type_i	(ctrl_op_lsu_inc_i),
       .atomic_i	(ctrl_op_lsu_atomic_i),
       .write_i	(store_buffer_write),
 
@@ -614,6 +624,7 @@ if (FEATURE_STORE_BUFFER!="NONE") begin : store_buffer_gen
       .adr_o	(store_buffer_radr),
       .dat_o	(store_buffer_dat),
       .bsel_o	(store_buffer_bsel),
+      .type_o   (store_buffer_type),
       .atomic_o	(store_buffer_atomic),
       .read_i	(store_buffer_read),
 
@@ -664,7 +675,7 @@ generate
 if (FEATURE_DATACACHE!="NONE") begin : dcache_gen
    if (OPTION_DCACHE_LIMIT_WIDTH == OPTION_OPERAND_WIDTH) begin
       assign dc_access =  ctrl_op_lsu_store_i | dc_enabled &
-			 !(dmmu_cache_inhibit & dmmu_enable_i);
+			 !(dmmu_cache_inhibit & (dmmu_enable_i || FEATURE_DMMU=="NONE") );
    end else if (OPTION_DCACHE_LIMIT_WIDTH < OPTION_OPERAND_WIDTH) begin
       assign dc_access = ctrl_op_lsu_store_i | dc_enabled &
 			 dc_adr_match[OPTION_OPERAND_WIDTH-1:
@@ -844,7 +855,7 @@ if (FEATURE_DMMU!="NONE") begin : dmmu_gen
       .spr_bus_stb_i			(dmmu_spr_bus_stb),	 // Templated
       .spr_bus_dat_i			(spr_bus_dat_i[OPTION_OPERAND_WIDTH-1:0]));
 end else begin
-   assign dmmu_cache_inhibit = 0;
+   assign dmmu_cache_inhibit = dc_adr_match[31]|dc_adr_match[30];
    assign tlb_miss = 0;
    assign pagefault = 0;
    assign tlb_reload_busy = 0;

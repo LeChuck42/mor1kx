@@ -124,6 +124,7 @@ module mor1kx_cpu
     output [3:0] 		      dbus_bsel_o,
     output 			      dbus_we_o,
     output 			      dbus_burst_o,
+    output 			      dbus_type_o,
 
     // Interrupts
     input [31:0] 		      irq_i,
@@ -272,6 +273,7 @@ module mor1kx_cpu
 	    .dbus_bsel_o		(dbus_bsel_o[3:0]),
 	    .dbus_we_o			(dbus_we_o),
 	    .dbus_burst_o		(dbus_burst_o),
+		.dbus_type_o        (dbus_type_o),
 	    .du_dat_o			(du_dat_o[OPTION_OPERAND_WIDTH-1:0]),
 	    .du_ack_o			(du_ack_o),
 	    .du_stall_o			(du_stall_o),

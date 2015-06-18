@@ -94,6 +94,7 @@ module mor1kx_decode
     output 			      decode_op_lsu_load_o,
     output 			      decode_op_lsu_store_o,
     output 			      decode_op_lsu_atomic_o,
+    output 			      decode_op_lsu_inc_o,
     output reg [1:0] 		      decode_lsu_length_o,
     output 			      decode_lsu_zext_o,
 
@@ -152,9 +153,12 @@ module mor1kx_decode
    assign decode_op_lsu_store_o = (opc_insn == `OR1K_OPCODE_SW) ||
 				  (opc_insn == `OR1K_OPCODE_SB) ||
 				  (opc_insn == `OR1K_OPCODE_SH) ||
+				  (opc_insn == `OR1K_OPCODE_CUST1) ||
 				  ((opc_insn == `OR1K_OPCODE_SWA) &
 				  (FEATURE_ATOMIC!="NONE"));
 
+   assign decode_op_lsu_inc_o = (opc_insn == `OR1K_OPCODE_CUST1);
+   
    assign decode_op_lsu_atomic_o = ((opc_insn == `OR1K_OPCODE_LWA) ||
 				    (opc_insn == `OR1K_OPCODE_SWA)) &
 				   (FEATURE_ATOMIC!="NONE");
@@ -288,7 +292,8 @@ module mor1kx_decode
                          (opc_insn == `OR1K_OPCODE_LWA) |
                          (opc_insn == `OR1K_OPCODE_SW) |
                          (opc_insn == `OR1K_OPCODE_SH) |
-                         (opc_insn == `OR1K_OPCODE_SB);
+                         (opc_insn == `OR1K_OPCODE_SB) |
+                         (opc_insn == `OR1K_OPCODE_CUST1);
 
    assign imm_zext = {{16{1'b0}}, decode_imm16_o[15:0]};
    assign imm_zext_sel = ((opc_insn[5:4] == 2'b10) &
